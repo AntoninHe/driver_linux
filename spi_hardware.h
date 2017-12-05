@@ -1,7 +1,9 @@
 #ifndef __ASM_SPI_HARDWARE_H
 #define __ASM_SPI_HARDWARE_H
 
-#include </asm-arm/arch-at91rm9200/hardware.h>
+#include <asm/arch-at91rm9200/hardware.h>
+#include <asm/arch-at91rm9200/at91rm9200_spi.h>
+#include <asm/arch-at91rm9200/at91rm9200_sys.h>
 
 static inline unsigned int at91_spi_read(unsigned int reg_offset)
 {
@@ -10,8 +12,7 @@ static inline unsigned int at91_spi_read(unsigned int reg_offset)
 	return readl(addr + reg_offset);
 }
 
-AT91_SPI_RD -> ajout masque de lecture 32->16 bits
-
+//AT91_SPI_RD -> ajout masque de lecture 32->16 bits
 //fonction d'écriture mémoire pour le SPI
 static inline void at91_spi_write(unsigned int reg_offset, unsigned long value)
 {

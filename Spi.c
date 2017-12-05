@@ -1,27 +1,27 @@
 #include <linux/module.h>
 #include <linux/init.h>
+#include <linux/fs.h>
 
-
-#include <asm/arch-at91rm9200/gpio.h>
-
+#include "spi_hardware.h"
 MODULE_AUTHOR("optionESE");
 MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
 
+static int majeur;
 
-
-static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppos)
+static ssize_t spi_write(struct file *file, const char *buffer, size_t count, loff_t *ppos)
 {
-
   return 0;
 }
 
-static ssize_t spi_read(struct file *file, const char *buf, size_t count, loff_t *ppos)
+static ssize_t spi_read(struct file *file, char *buffer, size_t count, loff_t *ppos)
 {
-	unsigned int value SPI = at91_spi_read(  AT91_SPI_RDR,/* Receive Data Register */
-				AT91_SPI_RD);/* Receive Data */
 
-	if( (buffer!=null) && (count>1) )
+	unsigned int value;
+
+	value = at91_spi_read(AT91_SPI_RDR);/* Receive Data Register */
+
+	if( (buffer!=NULL) && (count>1) )
 	{
 		buffer[0] =  (char)(value & 0x000F);
 		value = value & 0x00F0;
@@ -79,7 +79,7 @@ static int __init module_spi_init(void)
 	PMC setup
 	*************************/
 
-	at91_sys_write(	PMC_PCER,			/*Peripheral Clock Enable*/
+	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
 					1<<AT91_ID_SPI);	/*SPI enable*/
 					
 	/*************************
@@ -93,7 +93,7 @@ static int __init module_spi_init(void)
 	at91_spi_write( AT91_SPI_MR,		/* Mode Register */
 					AT91_SPI_MSTR		|/* Master/Slave Mode */
 					AT91_SPI_PS_FIXED   |/* Chip select fixed*/
-					AT91_SPI_DIV32);	|/* Clock Selection */				
+					AT91_SPI_DIV32);	/* Clock Selection */				
 
 	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
 					AT91_SPI_CPOL		|/*	Clock Polarity*/
