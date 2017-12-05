@@ -22,37 +22,7 @@ static ssize_t spi_read(struct file *file, const char *buf, size_t count, loff_t
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
-	/*************************
-	SPI setup
-	*************************/
-
-
-	at91_spi_write( AT91_SPI_CR,
-					AT91_SPI_SPIEN 		|/* SPI Enable */
-					AT91_SPI_SWRST);	/* SPI Software Reset */
-
-	at91_spi_write( AT91_SPI_MR,		/* Mode Register */
-					AT91_SPI_MSTR		|/* Master/Slave Mode */
-					AT91_SPI_PS_FIXED   |/* Chip select fixed*/
-					AT91_SPI_DIV32		|/* Clock Selection */
-					AT91_SPI_PCS		);/* Peripheral Chip Select */
-	 
-
-	at91_spi_write( AT91_SPI_RDR,	/* Receive Data Register */
-					AT91_SPI_RD); 	/* Receive Data */ //16bit
-	 
-
-	at91_spi_write( AT91_SPI_MR, 		/* Mode Register */
-					AT91_SPI_MSTR);		/* Master/Slave Mode */
-					//AT91_SPI_DIV32	/* Clock Selection */
-					//AT91_SPI_DLYBCS 	/* Delay Between Chip Selects */				
-
-	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
-					AT91_SPI_CPOL		|/*	Clock Polarity*/
-					AT91_SPI_BITS_16	|/*	16-bits transfer*/
-					1<<8);				/*	Baud rate MCK / (2*SCBR) SCBR=128*/
-					//AT91_SPI_DLYBS	/* Delay before SPCK 1/32*/
-					//AT91_SPI_DLYBCT	/* Delay between Consecutive Transfers */
+	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN); 	/* SPI Enable */
   return 0;
 }
 
@@ -98,6 +68,26 @@ static int __init module_spi_init(void)
 
 	at91_sys_write(	PMC_PCER,			/*Peripheral Clock Enable*/
 					1<<AT91_ID_SPI);	/*SPI enable*/
+					
+	/*************************
+	SPI setup
+	*************************/
+
+
+	at91_spi_write( AT91_SPI_CR,
+					AT91_SPI_SWRST);	/* SPI Software Reset */
+
+	at91_spi_write( AT91_SPI_MR,		/* Mode Register */
+					AT91_SPI_MSTR		|/* Master/Slave Mode */
+					AT91_SPI_PS_FIXED   |/* Chip select fixed*/
+					AT91_SPI_DIV32);	|/* Clock Selection */				
+
+	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
+					AT91_SPI_CPOL		|/*	Clock Polarity*/
+					AT91_SPI_BITS_16	|/*	16-bits transfer*/
+					1<<8);				/*	Baud rate MCK / (2*SCBR) SCBR=128*/
+					//AT91_SPI_DLYBS	/* Delay before SPCK 1/32*/
+					//AT91_SPI_DLYBCT	/* Delay between Consecutive Transfers */
 
 	ret = register_chrdev(0,"spi",&fops);
 	if (ret < 0)
@@ -120,7 +110,7 @@ static void __exit module_spi_cleanup(void)
 	if (ret < 0)
 		printk(KERN_WARNING "erreur fonction unregister_chrdev\n");
 	else 
-		printk(KERN_DEBUG "pilote led decharge avec succes\n");
+		printk(KERN_DEBUG "pilote spi decharge avec succes\n");
 }
 
 module_init(module_spi_init);
