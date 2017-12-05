@@ -11,6 +11,16 @@ static int majeur;
 
 static ssize_t spi_write(struct file *file, const char *buffer, size_t count, loff_t *ppos)
 {
+	unsigned int value =0;
+	if(count>1)
+		return 1;
+
+	value = (unsigned int)buffer[1];
+	value = value << 8;
+	value += (unsigned int)buffer[0];
+	at91_spi_write( AT91_SPI_TDR,/* Transmit Data Register (16bit)*/
+				value);	/* Transmit Data */ //16bit //& AT91_SPI_TD
+
   return 0;
 }
 
@@ -19,18 +29,14 @@ static ssize_t spi_read(struct file *file, char *buffer, size_t count, loff_t *p
 
 	unsigned int value;
 
-	value = at91_spi_read(AT91_SPI_RDR);/* Receive Data Register */
+	value = AT91_SPI_RD & at91_spi_read(AT91_SPI_RDR);/* Receive Data Register (16bit)*/
 
-	if( (buffer!=NULL) && (count>1) )
-	{
-		buffer[0] =  (char)(value & 0x000F);
-		value = value & 0x00F0;
-		value = value >> 8;
-		buffer[1] = (char)value;
-		return 0;
-	}
-	
-  return 1;
+	if( (buffer==NULL) || (count<2) )
+		return 1;
+
+	buffer[0] =  (char)(value & 0x000F);
+	buffer[1] = (char)(value >> 8);
+	return 0;
 }
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
