@@ -98,9 +98,9 @@ static int __init module_spi_init(void)
 	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
 					AT91_SPI_CPOL		|/*	Clock Polarity*/
 					AT91_SPI_BITS_16	|/*	16-bits transfer*/
-					1<<8);				/*	Baud rate MCK / (2*SCBR) SCBR=128*/
-					//AT91_SPI_DLYBS	/* Delay before SPCK 1/32*/
-					//AT91_SPI_DLYBCT	/* Delay between Consecutive Transfers */
+					9<<16				|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
+					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
+					4);					/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
 
 	ret = register_chrdev(0,"spi",&fops);
 	if (ret < 0)
