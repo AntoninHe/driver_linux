@@ -21,3 +21,4 @@ static inline void at91_spi_write(unsigned int reg_offset, unsigned long value)
 }
 
 #endif 
+
