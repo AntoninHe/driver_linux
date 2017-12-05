@@ -41,12 +41,13 @@ static ssize_t spi_read(struct file *file, char *buffer, size_t count, loff_t *p
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
-	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN); 	/* SPI Enable */
+	at91_spi_write( AT91_SPI_CR,AT91_SPI_SWRST | AT91_SPI_SPIEN); 	/* SPI Enable */
   return 0;
 }
 
 static ssize_t spi_close(struct inode *inode, struct file *file)
 {
+	at91_spi_write( AT91_SPI_CR,AT91_SPI_SWRST | AT91_SPI_SPIDIS); 	/* SPI Disable */
   return 0;
 }
 
