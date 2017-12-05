@@ -12,12 +12,25 @@ MODULE_LICENSE("none");
 
 static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
+
   return 0;
 }
 
 static ssize_t spi_read(struct file *file, const char *buf, size_t count, loff_t *ppos)
 {
-  return 0;
+	unsigned int value SPI = at91_spi_read(  AT91_SPI_RDR,/* Receive Data Register */
+				AT91_SPI_RD);/* Receive Data */
+
+	if( (buffer!=null) && (count>1) )
+	{
+		buffer[0] =  (char)(value & 0x000F);
+		value = value & 0x00F0;
+		value = value >> 8;
+		buffer[1] = (char)value;
+		return 0;
+	}
+	
+  return 1;
 }
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
