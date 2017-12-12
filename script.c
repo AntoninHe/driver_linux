@@ -4,7 +4,7 @@
 
 int main(int argc, char *argv[]) {
 	int i=0;
-	char c[2] = {0,0x0c} ;
+	char c[2] = {0x00,0x0C} ;
 	char chips[2] = {0xF,0xF};
 	//FILE * sp = fopen("/dev/spi","wb");
 	int descripteur = open("/dev/spi",O_RDWR);
