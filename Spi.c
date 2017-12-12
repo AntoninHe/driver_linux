@@ -11,9 +11,9 @@ static int majeur;
 
 static ssize_t spi_write(struct file *file, const char *buffer, size_t count, loff_t *ppos)
 {
-	unsigned int value =0;
-	if(count>1)
-		return 1;
+	unsigned long value =0;
+	printk(KERN_DEBUG "write SPI\n");
+	if(count<1) return -1;
 
 	value = (unsigned int)buffer[1];
 	value = value << 8;
@@ -21,32 +21,35 @@ static ssize_t spi_write(struct file *file, const char *buffer, size_t count, lo
 	at91_spi_write( AT91_SPI_TDR,/* Transmit Data Register (16bit)*/
 				value);	/* Transmit Data */ //16bit //& AT91_SPI_TD
 
-  return 0;
+  	return count;
 }
 
 static ssize_t spi_read(struct file *file, char *buffer, size_t count, loff_t *ppos)
 {
-
 	unsigned int value;
+	printk(KERN_DEBUG "read SPI\n");
 
 	value = AT91_SPI_RD & at91_spi_read(AT91_SPI_RDR);/* Receive Data Register (16bit)*/
 
-	if( (buffer==NULL) || (count<2) )
-		return 1;
+	if( (buffer==NULL) || (count!=2) ) {
+		printk(KERN_DEBUG "count = %d\n",count);
+		return -1;
+	}
 
 	buffer[0] =  (char)(value & 0x000F);
 	buffer[1] = (char)(value >> 8);
-	return 0;
+	return 2;
 }
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
-	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN); 	/* SPI Enable */
+	printk(KERN_DEBUG "open SPI\n");
   return 0;
 }
 
 static ssize_t spi_close(struct inode *inode, struct file *file)
 {
+	printk(KERN_DEBUG "close SPI\n");
   return 0;
 }
 
@@ -93,12 +96,14 @@ static int __init module_spi_init(void)
 	*************************/
 
 
-	at91_spi_write( AT91_SPI_CR,
-					AT91_SPI_SWRST);	/* SPI Software Reset */
+	at91_spi_write( AT91_SPI_CR,AT91_SPI_SWRST);	/* SPI Software Reset */
 
-	at91_spi_write( AT91_SPI_MR,		/* Mode Register */
+	at91_spi_write( AT91_SPI_MR,				/* Mode Register */
 					AT91_SPI_MSTR		|/* Master/Slave Mode */
-					AT91_SPI_PS_FIXED   |/* Chip select fixed*/
+					AT91_SPI_PS_FIXED   	|/* Chip select fixed*/
+					0x00<<16		|/*NPCS 0*/
+					64<<24			|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
+					AT91_SPI_MODFDIS	|/*mode fault detection disabled*/
 					AT91_SPI_DIV32);	/* Clock Selection */				
 
 	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
@@ -107,6 +112,8 @@ static int __init module_spi_init(void)
 					9<<16				|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
 					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
 					4);					/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
+
+	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN);	/* SPI Enable */
 
 	ret = register_chrdev(0,"spi",&fops);
 	if (ret < 0)
