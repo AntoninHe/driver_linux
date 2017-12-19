@@ -8,10 +8,11 @@ MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
 
 static int majeur;
+#define debug() printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR));
 
-void debug(void) {
-	printk(KERN_DEBUG "%x\n",at91_spi_read(AT91_SPI_SR));	
-}
+//void debug(void) {
+//	printk(KERN_DEBUG "%x\n",at91_spi_read(AT91_SPI_SR));	
+//}
 
 static ssize_t spi_write(struct file *file, const char *buffer, size_t count, loff_t *ppos)
 {
