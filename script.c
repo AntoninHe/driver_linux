@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 
 	printf("Sélection de l'axe : ");
 	scanf("%c", &c[0]);
-	if (c[0]=='X' | c[0]=='Y' | c[0]=='Z' | c[0]=='x' | c[0]=='y' | c[0]=='z') {
+	if (c[0]=='X' | c[0]=='Y') {
 
 		write(descripteur,c,sizeof(c));
 
@@ -20,6 +20,7 @@ int main(int argc, char *argv[]) {
 
 				if(read(descripteur,value,sizeof(value))!=2) printf("error read\n");
 				printf("%s\n",value);
+sleep(1);
 			}
 			close(descripteur);
 		} else return -1;

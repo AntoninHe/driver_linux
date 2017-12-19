@@ -22,17 +22,17 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 	
 	// Attente de la fin de transfert
 	debug();
-	while ((0x00000001 & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
+	while ((AT91_SPI_RDRF & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
 
 	// Lecture de la reponse de l'inclinometre
 	result = at91_spi_read(AT91_SPI_RDR);
 
 	// Traduction de la reponse en degres
 	if ((result & (1<<13))==0x0000){
-		bufint = ((short int)(result & 0x1FFF)) /40 ;	
+		bufint = ((short int)(result & 0x3FFF)) /40 ;	
 	}
 	else if ((result  & (1<<13))==0x2000){
-		bufint = ((short int)(result | 0xC000)) /40 ;	
+		bufint = ((short int)(result | 0x8000)) /40 ;	
 	}
 	
 	// Enregistrement de la donnee
@@ -46,14 +46,11 @@ static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppo
 {
 	printk(KERN_DEBUG "write()\n");
 	
-	if ((buf[0] == 'X') | (buf[0] == 'x')){
+	if (buf[0] == 'X') {
 		tr = 0x0C00; // Pour X
 	}
-	if ((buf[0] == 'Y') | (buf[0] == 'y')){
+	if (buf[0] == 'Y') {
 		tr = 0x0E00; // Pour Y
-	}		
-	if ((buf[0] == 'Z') | (buf[0] == 'z')){
-		tr = 0x1000; // Pour Z
 	}
 
  	return 0;
