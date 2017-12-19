@@ -9,7 +9,8 @@ MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
 
 static int majeur;
-int tr,i,result,bufint,axis;
+int result,bufint,axis;
+int tr=0x0C00;//X per default
 
 #define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
 
@@ -41,23 +42,30 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 	return 2;
 }
 
-//Choix de l'axe
-static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppos)
-{
-	printk(KERN_DEBUG "write()\n");
-	
-	if ((buf[0] == 'X') | (buf[0] == 'x')){
-		tr = 0x0C00; // Pour X
-		debug();
+//int ioctl(int fd, int cmd, char *argp); user
+int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg){
+	switch(cmd){
+	case SET_AXE :
+		switch(arg)){
+			case 'X' :
+				tr = 0x0C00; // Pour X
+				printf("axe X set");
+				break;
+			
+			case 'Y' :
+				tr = 0x0E00; // Pour Y
+				printf("axe Y set");
+				break;
+			
+			default :
+				printf("axe unknown");
+				break;
+		}
+		break;
+	default :
+		printf("paramameter unknown");
+		break;
 	}
-	if ((buf[0] == 'Y') | (buf[0] == 'y')){
-		tr = 0x0E00; // Pour Y
-	}		
-	if ((buf[0] == 'Z') | (buf[0] == 'z')){
-		tr = 0x1000; // Pour Z
-	}
-
- 	return 0;
 }
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
@@ -77,7 +85,7 @@ static ssize_t spi_close(struct inode *inode, struct file *file)
 static struct file_operations fops =
 {
   read : spi_read,
-  write : spi_write,
+  ioctl : spi_ioctl,
   open : spi_open,
   release : spi_close
 };

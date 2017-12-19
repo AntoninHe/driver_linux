@@ -1,14 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/ioctl.h>
 
 int main(int argc, char *argv[]) {
 	int i=0;
 	char c[1] = {'X'};
 	char chips[2] = {0xF,0xF};
 	int descripteur = open("/dev/spi",O_RDWR);
-
-	write(descripteur,c,sizeof(c));
+	ioctl(descripteur,SET_AXE,'X');	
 	sleep(1);
 
 	if(descripteur>=0) {
