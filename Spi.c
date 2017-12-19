@@ -1,6 +1,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
+#include <linux/kernel.h>
 
 #include "spi_hardware.h"
 MODULE_AUTHOR("optionESE");
@@ -8,50 +9,58 @@ MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
 
 static int majeur;
+int tr;
+int result;
+int bufint;
+int axis;
 
 void debug(void) {
 	printk(KERN_DEBUG "%x\n",at91_spi_read(AT91_SPI_SR));	
 }
 
-static ssize_t spi_write(struct file *file, const char *buffer, size_t count, loff_t *ppos)
+static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
-	if((at91_spi_read(AT91_SPI_SR)&0x2)==0x2) {
-		debug();
-		unsigned int value =0;
-		printk(KERN_DEBUG "write SPI\n");
-		if(count<1) return -1;
+	printk(KERN_DEBUG "read()\n");
+		
+	// Transfert	
+	at91_spi_write(AT91_SPI_TDR, tr);
+	
+	// Attente de la fin de transfert
+	while ((0x00000001 & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
 
-		value = (unsigned int)buffer[1];
-		value = value << 8;
-		value += (unsigned int)buffer[0];
-		at91_spi_write( AT91_SPI_TDR,/* Transmit Data Register (16bit)*/
-					value);	/* Transmit Data */ //16bit //& AT91_SPI_TD
-		debug();
+	// Lecture de la reponse de l'inclinometre
+	result = at91_spi_read(AT91_SPI_RDR);
 
-	  	return count;
+	// Traduction de la reponse en degres
+	if ((result & (1<<13))==0x0000){
+		bufint = ((short int)(result & 0x1FFF)) /40 ;	
 	}
-	return -1;
+	else if ((result  & (1<<13))==0x2000){
+		bufint = ((short int)(result | 0xC000)) /40 ;	
+	}
+	
+	// Enregistrement de la donnee
+	sprintf(buf, "%d", bufint);
+	
+	return 2;
 }
 
-static ssize_t spi_read(struct file *file, char *buffer, size_t count, loff_t *ppos)
+//Choix de l'axe
+static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
-	if((at91_spi_read(AT91_SPI_SR)&0x1)==0x1) {
-		debug();
-		unsigned int value;
-		printk(KERN_DEBUG "read SPI\n");
-		debug();
-		value = AT91_SPI_RD & at91_spi_read(AT91_SPI_RDR);/* Receive Data Register (16bit)*/
-
-		if( (buffer==NULL) || (count!=2) ) {
-			printk(KERN_DEBUG "count = %d\n",count);
-			return -1;
-		}
-
-		buffer[0] =  (char)(value & 0x000F);
-		buffer[1] = (char)(value >> 8);
-		return 2;
+	printk(KERN_DEBUG "write()\n");
+	
+	if ((buf[0] == 'X') | (buf[0] == 'x')){
+		tr = 0x0C00; // Pour X
 	}
-	return -1;
+	if ((buf[0] == 'Y') | (buf[0] == 'y')){
+		tr = 0x0E00; // Pour Y
+	}		
+	if ((buf[0] == 'Z') | (buf[0] == 'z')){
+		tr = 0x1000; // Pour Z
+	}
+
+ 	return 0;
 }
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
@@ -79,16 +88,8 @@ static struct file_operations fops =
 static int __init module_spi_init(void)
 {
 	int ret;
-	unsigned int temp;
+	int temp,temp1;
 	printk(KERN_DEBUG "initialisation du module SPI\n");
-
-	/*************************
-	PMC setup
-	*************************/
-	temp=1<<AT91_ID_SPI;
-	at91_sys_write(AT91_PMC_PCER,temp);
-//	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
-//					1<<AT91_ID_SPI);	/*SPI enable*/
 
 	/*************************
 	PIO Controler setup
@@ -119,7 +120,15 @@ static int __init module_spi_init(void)
 	//				AT91_PA2_SPCK 	| 	/*SPCK*/
 	//				AT91_PA3_NPCS0);	/*NPCS0*/
 
-					
+			
+
+	/*************************
+	PMC setup
+	*************************/
+	temp=1<<AT91_ID_SPI;
+	at91_sys_write(AT91_PMC_PCER,temp);
+//	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
+//					1<<AT91_ID_SPI);	/*SPI enable*/		
 	
 					
 	/*************************
@@ -133,7 +142,6 @@ static int __init module_spi_init(void)
 	temp=64<<24;
 	temp|=AT91_SPI_MSTR|AT91_SPI_PS_FIXED|AT91_SPI_PS_FIXED|AT91_SPI_MODFDIS|AT91_SPI_DIV32;
 	at91_spi_write(AT91_SPI_MR,temp);
-	
 //	at91_spi_write( AT91_SPI_MR,				/* Mode Register */
 //					AT91_SPI_MSTR		|/* Master/Slave Mode */
 //					AT91_SPI_PS_FIXED   	|/* Chip select fixed*/
@@ -143,7 +151,7 @@ static int __init module_spi_init(void)
 //					AT91_SPI_DIV32);	/* Clock Selection */				
 	temp =9<<16;
 	temp1=64<<24;
-	temp|=temp1 | AT91_SPI_CPOL | AT91_SPI_BITS_16 |4;
+	temp|=temp1 | AT91_SPI_CPOL | AT91_SPI_BITS_16 |(4<<8);
 	at91_spi_write(	AT91_SPI_CSR(0),temp);
 	
 //	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
