@@ -79,32 +79,45 @@ static struct file_operations fops =
 static int __init module_spi_init(void)
 {
 	int ret;
-
+	unsigned int temp;
 	printk(KERN_DEBUG "initialisation du module SPI\n");
 
 	/*************************
 	PMC setup
 	*************************/
-
-	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
-					1<<AT91_ID_SPI);	/*SPI enable*/
+	temp=1<<AT91_ID_SPI;
+	at91_sys_write(AT91_PMC_PCER,temp);
+//	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
+//					1<<AT91_ID_SPI);	/*SPI enable*/
 
 	/*************************
 	PIO Controler setup
 	*************************/
+	temp = 	AT91_PA0_MISO 	| 	/*MISO*/
+			AT91_PA1_MOSI 	| 	/*MOSI*/
+			AT91_PA2_SPCK 	| 	/*SPCK*/
+			AT91_PA3_NPCS0;	/*NPCS0*/
+	
+	at91_sys_write(	AT91_PIOA+PIO_PDR,temp);
+	
+	//at91_sys_write(	AT91_PIOA+PIO_PDR, 	/*Pin controlled by peripheral*/
+	//				AT91_PA0_MISO 	| 	/*MISO*/
+	//				AT91_PA1_MOSI 	| 	/*MOSI*/
+	//				AT91_PA2_SPCK 	| 	/*SPCK*/
+	//				AT91_PA3_NPCS0);	/*NPCS0*/
 
-	at91_sys_write(	AT91_PIOA+PIO_PDR, 	/*Pin controlled by peripheral*/
-					AT91_PA0_MISO 	| 	/*MISO*/
-					AT91_PA1_MOSI 	| 	/*MOSI*/
-					AT91_PA2_SPCK 	| 	/*SPCK*/
-					AT91_PA3_NPCS0);	/*NPCS0*/
-
-
-	at91_sys_write(	AT91_PIOA+PIO_ASR, 	/*Peripheral A pin select*/
-					AT91_PA0_MISO 	| 	/*MISO*/
-					AT91_PA1_MOSI 	| 	/*MOSI*/
-					AT91_PA2_SPCK 	| 	/*SPCK*/
-					AT91_PA3_NPCS0);	/*NPCS0*/
+	temp = 	AT91_PA0_MISO 	| 	/*MISO*/
+			AT91_PA1_MOSI 	| 	/*MOSI*/
+			AT91_PA2_SPCK 	| 	/*SPCK*/
+			AT91_PA3_NPCS0;	/*NPCS0*/
+			
+	at91_sys_write(	AT91_PIOA+PIO_ASR, temp);
+	
+	//at91_sys_write(	AT91_PIOA+PIO_ASR, 	/*Peripheral A pin select*/
+	//				AT91_PA0_MISO 	| 	/*MISO*/
+	//				AT91_PA1_MOSI 	| 	/*MOSI*/
+	//				AT91_PA2_SPCK 	| 	/*SPCK*/
+	//				AT91_PA3_NPCS0);	/*NPCS0*/
 
 					
 	
@@ -116,20 +129,29 @@ static int __init module_spi_init(void)
 
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SWRST);	/* SPI Software Reset */
 
-	at91_spi_write( AT91_SPI_MR,				/* Mode Register */
-					AT91_SPI_MSTR		|/* Master/Slave Mode */
-					AT91_SPI_PS_FIXED   	|/* Chip select fixed*/
-					0x00<<16		|/*NPCS 0*/
-					64<<24			|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
-					AT91_SPI_MODFDIS	|/*mode fault detection disabled*/
-					AT91_SPI_DIV32);	/* Clock Selection */				
-
-	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
-					AT91_SPI_CPOL		|/*	Clock Polarity*/
-					AT91_SPI_BITS_16	|/*	16-bits transfer*/
-					9<<16				|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
-					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
-					4);				/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
+	
+	temp=64<<24;
+	temp|=AT91_SPI_MSTR|AT91_SPI_PS_FIXED|AT91_SPI_PS_FIXED|AT91_SPI_MODFDIS|AT91_SPI_DIV32;
+	at91_spi_write(AT91_SPI_MR,temp);
+	
+//	at91_spi_write( AT91_SPI_MR,				/* Mode Register */
+//					AT91_SPI_MSTR		|/* Master/Slave Mode */
+//					AT91_SPI_PS_FIXED   	|/* Chip select fixed*/
+//					0x00<<16		|/*NPCS 0*/
+//					64<<24			|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
+//					AT91_SPI_MODFDIS	|/*mode fault detection disabled*/
+//					AT91_SPI_DIV32);	/* Clock Selection */				
+	temp =9<<16;
+	temp1=64<<24;
+	temp|=temp1 | AT91_SPI_CPOL | AT91_SPI_BITS_16 |4;
+	at91_spi_write(	AT91_SPI_CSR(0),temp);
+	
+//	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
+//					AT91_SPI_CPOL		|/*	Clock Polarity*/
+//					AT91_SPI_BITS_16	|/*	16-bits transfer*/
+//					9<<16				|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
+//					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
+//					4);				/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
 
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN);	/* SPI Enable */
 	debug();
