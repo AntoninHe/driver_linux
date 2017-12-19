@@ -9,13 +9,9 @@ MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
 
 static int majeur;
-int tr;
-int result;
-int bufint;
-int axis;
+int tr,i,result,bufint,axis;
 
-#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR));
-
+#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
 
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
@@ -25,6 +21,7 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 	at91_spi_write(AT91_SPI_TDR, tr);
 	
 	// Attente de la fin de transfert
+	debug();
 	while ((0x00000001 & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
 
 	// Lecture de la reponse de l'inclinometre
@@ -51,6 +48,7 @@ static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppo
 	
 	if ((buf[0] == 'X') | (buf[0] == 'x')){
 		tr = 0x0C00; // Pour X
+		debug();
 	}
 	if ((buf[0] == 'Y') | (buf[0] == 'y')){
 		tr = 0x0E00; // Pour Y
