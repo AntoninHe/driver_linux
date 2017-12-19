@@ -1,7 +1,6 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
-#include <linux/kernel.h>
 
 #include "spi_hardware.h"
 MODULE_AUTHOR("optionESE");
@@ -11,11 +10,12 @@ MODULE_LICENSE("none");
 static int majeur;
 int tr,i,result,bufint,axis;
 
-#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
+//#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
+#define debug();
 
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
-	printk(KERN_DEBUG "read()\n");
+	//printk(KERN_DEBUG "read()\n");
 		
 	// Transfert	
 	at91_spi_write(AT91_SPI_TDR, tr);
@@ -48,7 +48,6 @@ static ssize_t spi_write(struct file *file, char *buf, size_t count, loff_t *ppo
 	
 	if ((buf[0] == 'X') | (buf[0] == 'x')){
 		tr = 0x0C00; // Pour X
-		debug();
 	}
 	if ((buf[0] == 'Y') | (buf[0] == 'y')){
 		tr = 0x0E00; // Pour Y

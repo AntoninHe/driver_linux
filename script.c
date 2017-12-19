@@ -5,23 +5,25 @@
 int main(int argc, char *argv[]) {
 	int i=0;
 	char c[1] = {'X'};
-	char chips[2] = {0xF,0xF};
+	char value[2] = {'0','0'};
 	int descripteur = open("/dev/spi",O_RDWR);
 
-	write(descripteur,c,sizeof(c));
-	sleep(1);
+	printf("Sélection de l'axe : ");
+	scanf("%c", &c[0]);
+	if (c[0]=='X' | c[0]=='Y' | c[0]=='Z' | c[0]=='x' | c[0]=='y' | c[0]=='z') {
 
-	if(descripteur>=0) {
-		printf("SPI file opened\n");
-		for (i=0;i<10;i++) {
+		write(descripteur,c,sizeof(c));
 
-			if(read(descripteur,chips,sizeof(chips))!=2) printf("error read\n");
-			printf("%x%x\n",chips[1],chips[0]);
+		if(descripteur>=0) {
+			printf("SPI file opened\n");
+			while(1) {
 
-			sleep(0.5);
-		}
-		close(descripteur);
-	} else return -1;
+				if(read(descripteur,value,sizeof(value))!=2) printf("error read\n");
+				printf("%s\n",value);
+			}
+			close(descripteur);
+		} else return -1;
+	} else  printf("wrong axe");
 
 	return 0;
 }
