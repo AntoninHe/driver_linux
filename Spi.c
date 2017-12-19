@@ -1,7 +1,6 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
-#include <linux/kernel.h>
 
 #include "spi_hardware.h"
 MODULE_AUTHOR("optionESE");
@@ -12,11 +11,12 @@ static int majeur;
 int result,bufint,axis;
 int tr=0x0C00;//X per default
 
-#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
+//#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
+#define debug();
 
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
-	printk(KERN_DEBUG "read()\n");
+	//printk(KERN_DEBUG "read()\n");
 		
 	// Transfert	
 	at91_spi_write(AT91_SPI_TDR, tr);
@@ -46,7 +46,7 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg){
 	switch(cmd){
 	case SET_AXE :
-		switch(arg)){
+		switch( (char)arg ){
 			case 'X' :
 				tr = 0x0C00; // Pour X
 				printf("axe X set");
@@ -59,14 +59,15 @@ int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned
 			
 			default :
 				printf("axe unknown");
-				break;
+				return -1;
 		}
 		break;
 	default :
-		printf("paramameter unknown");
-		break;
+		printf("cmd unknown");
+		return -1;
 	}
-}
+	return 0;
+
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
