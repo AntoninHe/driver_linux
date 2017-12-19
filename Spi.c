@@ -87,7 +87,6 @@ static int __init module_spi_init(void)
 	*************************/
 
 	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
-					1<<AT91_ID_PIOA	|	/*PIOA clock enable*/
 					1<<AT91_ID_SPI);	/*SPI enable*/
 
 	/*************************
@@ -106,18 +105,6 @@ static int __init module_spi_init(void)
 					AT91_PA1_MOSI 	| 	/*MOSI*/
 					AT91_PA2_SPCK 	| 	/*SPCK*/
 					AT91_PA3_NPCS0);	/*NPCS0*/
-
-	at91_sys_write(AT91_PIOA + PIO_PDR, AT91_PA0_MISO);			
-	at91_sys_write(AT91_PIOA + PIO_ASR, AT91_PA0_MISO);
-
-	at91_sys_write(AT91_PIOA + PIO_PDR, AT91_PA1_MOSI);
-	at91_sys_write(AT91_PIOA + PIO_ASR, AT91_PA1_MOSI);
-
-	at91_sys_write(AT91_PIOA + PIO_PDR, AT91_PA2_SPCK);
-	at91_sys_write(AT91_PIOA + PIO_ASR, AT91_PA2_SPCK);
-
-	at91_sys_write(AT91_PIOA + PIO_PDR, AT91_PA3_NPCS0);
-	at91_sys_write(AT91_PIOA + PIO_ASR, AT91_PA3_NPCS0);
 
 					
 	
@@ -147,7 +134,7 @@ static int __init module_spi_init(void)
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN);	/* SPI Enable */
 	debug();
 
-	ret = register_chrdev(0,"spi",&fops);
+	ret = register_chrdev(0,"spi_inclinometre_driver",&fops);
 	if (ret < 0)
 	{
 		printk(KERN_WARNING "erreur fonction register_chrdev\n");
