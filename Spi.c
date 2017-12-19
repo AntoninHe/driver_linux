@@ -14,9 +14,8 @@ int result;
 int bufint;
 int axis;
 
-void debug(void) {
-	printk(KERN_DEBUG "%x\n",at91_spi_read(AT91_SPI_SR));	
-}
+#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR));
+
 
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
