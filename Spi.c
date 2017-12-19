@@ -151,7 +151,7 @@ static void __exit module_spi_cleanup(void)
 	int ret;
 	
 	printk(KERN_DEBUG "arret du module SPI\n");
-	ret=unregister_chrdev(majeur,"spi");
+	ret=unregister_chrdev(majeur,"spi_inclinometre_driver");
 	if (ret < 0)
 		printk(KERN_WARNING "erreur fonction unregister_chrdev\n");
 	else 
