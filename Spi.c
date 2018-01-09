@@ -1,8 +1,10 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
+//#include <stdio.h>
 
 #include "spi_hardware.h"
+#include "spi.h"
 MODULE_AUTHOR("optionESE");
 MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
@@ -43,30 +45,31 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 }
 
 //int ioctl(int fd, int cmd, char *argp); user
-int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg){
+static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg){
 	switch(cmd){
-	case SET_AXE :
+		case SET_AXE :
 		switch( (char)arg ){
 			case 'X' :
 				tr = 0x0C00; // Pour X
-				printf("axe X set");
+				printk("axe X set\n");
 				break;
 			
 			case 'Y' :
 				tr = 0x0E00; // Pour Y
-				printf("axe Y set");
+				printk("axe Y set\n");
 				break;
 			
 			default :
-				printf("axe unknown");
+				printk("axe unknown\n");
 				return -1;
 		}
 		break;
-	default :
-		printf("cmd unknown");
+		default :
+		printk("cmd unknown\n");
 		return -1;
 	}
 	return 0;
+}
 
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
