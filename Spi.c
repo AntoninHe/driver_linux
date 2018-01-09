@@ -6,6 +6,7 @@
 
 #include "spi_hardware.h"
 #include "spi.h"
+
 MODULE_AUTHOR("Héréson & Rio");
 MODULE_DESCRIPTION("Projet option ESE : driver SPI");
 MODULE_LICENSE("GPL");
@@ -13,7 +14,7 @@ MODULE_LICENSE("GPL");
 static int majeur;
 static struct semaphore spi_sem;
 static short int data;
-int tr=0x0C00;//X per default
+int AXE_CONFIG=AXE_X;
 
 //#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
 #define debug();
@@ -25,57 +26,93 @@ static irqreturn_t spi_interrupt(int irq, void *dev_id)
 	return IRQ_HANDLED;
 }
 
-static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
-{	
-	int result;
-	
-	// Transfert	
-	at91_spi_write(AT91_SPI_TDR, tr);
-	
-	// Attente de la fin de transfert
-	//while ((AT91_SPI_RDRF & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);
-	down(&spi_sem);
-
-	// Lecture de la reponse de l'inclinometre
-	
-
-	// Traduction de la reponse en degres
+short int convert_spi_value(short int data){
+	// Traduction de la reponse en degrés
+	short int result=0;
 	if ((data & (1<<13))==0x0000){
 		result = ((short int)(data & 0x3FFF)) /40 ;	
 	}
 	else if ((data  & (1<<13))==0x2000){
 		result = ((short int)(data | 0x8000)) /40 ;	
 	}
-	
-	// Enregistrement de la donnee
-	sprintf(buf, "%d", result);
-	
-	return 2;
+	return result;
 }
+
+
+short int spiReadX()
+{
+	at91_spi_write(AT91_SPI_TDR, 0x0C00);
+	down(&spi_sem);	// Attente de la fin de transfert
+	return convert_spi_value(data);	
+}
+
+short int spiReadY()
+{
+	at91_spi_write(AT91_SPI_TDR, 0x0E00);
+	down(&spi_sem);	// Attente de la fin de transfert
+	return convert_spi_value(data);
+}
+
+
+static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
+{	
+	short int result;
+	switch (AXE_CONFIG){
+		case AXE_X :
+		//read X
+		result = spiReadX();
+		buf[0] = result & 0x00FF;
+		buf[1] = (result & 0xFF00)>>8;
+		return 2;
+
+		case AXE_Y :
+		//read Y
+		result = spiReadY();
+		buf[0] = result & 0x00FF;
+		buf[1] = (result & 0xFF00)>>8;
+		return 2;
+
+		case AXE_XY :
+		//read X
+		result = spiReadX();
+		buf[0] = result & 0x00FF;
+		buf[1] = (result & 0xFF00)>>8;
+		//read Y
+		result = spiReadY();
+		buf[2] = result & 0x00FF;
+		buf[3] = (result & 0xFF00)>>8;
+		return 4;
+	}
+}
+
+
 
 //int ioctl(int fd, int cmd, char *argp); user
 static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg){
 	switch(cmd){
 		case SET_AXE :
-		switch( (char)arg ){
-			case 'X' :
-				tr = 0x0C00; // Pour X
-				printk("axe X set\n");
-				break;
+			switch(arg){
+				case  AXE_X:
+					AXE_CONFIG = AXE_X; // Pour X
+					break;
 			
-			case 'Y' :
-				tr = 0x0E00; // Pour Y
-				printk("axe Y set\n");
-				break;
+				case AXE_Y :
+					AXE_CONFIG =  AXE_Y; // Pour Y
+					break;
+
+				case AXE_XY :
+					AXE_CONFIG =  AXE_XY; // Pour Y
+					break;
 			
+				default :
+					printk("axe unknown\n");
+					return -1;
+			}
+				break;
+
 			default :
-				printk("axe unknown\n");
+				printk("cmd unknown\n");
 				return -1;
-		}
-			break;
-		default :
-			printk("cmd unknown\n");
-			return -1;
 	}
 	return 0;
 }
