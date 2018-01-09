@@ -63,10 +63,10 @@ static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, u
 				printk("axe unknown\n");
 				return -1;
 		}
-		break;
+			break;
 		default :
-		printk("cmd unknown\n");
-		return -1;
+			printk("cmd unknown\n");
+			return -1;
 	}
 	return 0;
 }

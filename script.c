@@ -9,7 +9,6 @@ int main(int argc, char *argv[]) {
 	char value[2] = {'0','0'};
 	char c;
 	int descripteur = open("/dev/spi",O_RDWR);
-	sleep(1);
 	
 	printf("Sélection de l'axe : ");
 	scanf("%c", &c);
@@ -25,6 +24,6 @@ int main(int argc, char *argv[]) {
 			}
 			close(descripteur);
 		}	
-	}
+	} else printf("erreur descripteur\n");
 	return -1;
 }
