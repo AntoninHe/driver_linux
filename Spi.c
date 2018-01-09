@@ -2,24 +2,26 @@
 #include <linux/init.h>
 #include <linux/fs.h>
 #include <linux/interrupt.h>
+#include <asm/semaphore.h>
 
 #include "spi_hardware.h"
 #include "spi.h"
-MODULE_AUTHOR("optionESE");
-MODULE_DESCRIPTION("Projet");
+MODULE_AUTHOR("Héréson & Rio");
+MODULE_DESCRIPTION("Projet option ESE : driver SPI");
 MODULE_LICENSE("none");
 
 static int majeur;
+static struct semaphore spi_sem;
 int tr=0x0C00;//X per default
 
 //#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
 #define debug();
 
-static irqreturn_t SPI_interrupt(int irq, void *dev_id)
+static irqreturn_t spi_interrupt(int irq, void *dev_id)
 {
-	at91_sys_read(AT91_AIC_IVR);
+	if((at91_sys_read(AT91_AIC_IVR) & AT91_SPI_RDRF) != AT91_SPI_RDRF) return IRQ_RETVAL(0);
 	printk(KERN_DEBUG "Interrupt SPI");
-
+	up(&spi_sem);
 	return IRQ_RETVAL(1);
 }
 
@@ -31,7 +33,8 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 	at91_spi_write(AT91_SPI_TDR, tr);
 	
 	// Attente de la fin de transfert
-	while ((AT91_SPI_RDRF & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
+	//while ((AT91_SPI_RDRF & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
+	down(&spi_sem);
 
 	// Lecture de la reponse de l'inclinometre
 	result = at91_spi_read(AT91_SPI_RDR);
@@ -80,7 +83,8 @@ static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, u
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
-	int temp = request_irq(AT91_ID_SPI, SPI_interrupt,0,"/dev/spi",NULL);
+	init_MUTEX(&spi_sem);
+	int temp = request_irq(AT91_ID_SPI, spi_interrupt,0,"/dev/spi",NULL);
 	if (temp<0) printk(KERN_DEBUG "request_irq fault\n");
 	printk(KERN_DEBUG "open SPI\n");
 	debug();
@@ -89,6 +93,7 @@ static ssize_t spi_open(struct inode *inode, struct file *file)
 
 static ssize_t spi_close(struct inode *inode, struct file *file)
 {
+	free_irq (AT91_ID_SPI,NULL);
 	printk(KERN_DEBUG "close SPI\n");
 	debug();
   return 0;
@@ -178,8 +183,8 @@ static int __init module_spi_init(void)
 //					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
 //					4<<8);				/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
 
-	at91_spi_write( AT91_SPI_IER,		/* Interrupt Enable Register */
-				AT91_SPI_RDRF);	/* Receive Data Register Full Interrupt Enable */
+	at91_spi_write( AT91_SPI_IER,			/* Interrupt Enable Register */
+				AT91_SPI_RDRF);		/* Receive Data Register Full Interrupt Enable */
 
 	at91_sys_write( AT91_AIC_IECR,			/* AIC Interrupt Enable Command Register */
 				(1<<AT91_ID_SPI));	/* Enable Interrupt n°13 = SPI */
