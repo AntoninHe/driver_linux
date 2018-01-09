@@ -1,7 +1,7 @@
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
-//#include <stdio.h>
+#include <linux/interrupt.h>
 
 #include "spi_hardware.h"
 #include "spi.h"
@@ -10,21 +10,27 @@ MODULE_DESCRIPTION("Projet");
 MODULE_LICENSE("none");
 
 static int majeur;
-int result,bufint,axis;
 int tr=0x0C00;//X per default
 
 //#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
 #define debug();
 
-static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
+static irqreturn_t SPI_interrupt(int irq, void *dev_id)
 {
-	//printk(KERN_DEBUG "read()\n");
-		
+	at91_sys_read(AT91_AIC_IVR);
+	printk(KERN_DEBUG "Interrupt SPI");
+
+	return IRQ_RETVAL(1);
+}
+
+static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
+{	
+	int result,bufint;
+	
 	// Transfert	
 	at91_spi_write(AT91_SPI_TDR, tr);
 	
 	// Attente de la fin de transfert
-	debug();
 	while ((AT91_SPI_RDRF & at91_spi_read(AT91_SPI_SR)) != AT91_SPI_RDRF);	//boucle infinie, car on n'utilise pas d'interruption
 
 	// Lecture de la reponse de l'inclinometre
@@ -74,6 +80,8 @@ static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, u
 
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
+	int temp = request_irq(AT91_ID_SPI, SPI_interrupt,0,"/dev/spi",NULL);
+	if (temp<0) printk(KERN_DEBUG "request_irq fault\n");
 	printk(KERN_DEBUG "open SPI\n");
 	debug();
   return 0;
@@ -168,7 +176,13 @@ static int __init module_spi_init(void)
 //					AT91_SPI_BITS_16	|/*	16-bits transfer*/
 //					9<<16				|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
 //					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
-//					4);				/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
+//					4<<8);				/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
+
+	at91_spi_write( AT91_SPI_IER,		/* Interrupt Enable Register */
+				AT91_SPI_RDRF);	/* Receive Data Register Full Interrupt Enable */
+
+	at91_sys_write( AT91_AIC_IECR,			/* AIC Interrupt Enable Command Register */
+				(1<<AT91_ID_SPI));	/* Enable Interrupt n°13 = SPI */
 
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN);	/* SPI Enable */
 	debug();

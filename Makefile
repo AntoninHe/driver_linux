@@ -5,10 +5,12 @@ CFLAGS	=	-Wall -O2 -Wl,-s $(CCFLAGS)
 
 obj-m := Spi.o
 
-all: module
+all : module affichage
+
+module: mod
 	cp Spi.ko $(PRJROOT)/nfs/lib/modules/
 
-module:
+mod:
 	make -C /home/ese/Documents/mini-projet_RIO_HERESON/kernel/sourceNoyau SUBDIRS=$(PWD) modules
 
 affichage:	affichage_acc

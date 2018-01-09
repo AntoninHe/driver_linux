@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 	printf("Sélection de l'axe : ");
 	scanf("%c", &c);
 	if(descripteur>=0) {
-		if (ioctl(descripteur,SET_AXE,c)==0) {
+		/*if (ioctl(descripteur,SET_AXE,c)==0) {
 			printf("SPI file opened\n");
 			while(1) {
 
@@ -23,7 +23,7 @@ int main(int argc, char *argv[]) {
 				affichage_lcd(0,0,buffer);
 				sleep(1);
 
-			}
+			}*/
 			close(descripteur);
 		}	
 	} else printf("erreur descripteur\n");
