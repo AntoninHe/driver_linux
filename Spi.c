@@ -12,7 +12,7 @@ MODULE_LICENSE("GPL");
 
 static int majeur;
 static struct semaphore spi_sem;
-static data;
+static short int data;
 int tr=0x0C00;//X per default
 
 //#define debug(); printk(KERN_DEBUG "Line number %d, status : %x\n", __LINE__,at91_spi_read(AT91_SPI_SR)); 
@@ -20,8 +20,6 @@ int tr=0x0C00;//X per default
 
 static irqreturn_t spi_interrupt(int irq, void *dev_id)
 {
-	at91_sys_write(AT91_AIC_ICCR,(1<<AT91_ID_SPI));
-	printk(KERN_DEBUG "Interrupt SPI");
 	data = at91_spi_read(AT91_SPI_RDR);
 	up(&spi_sem);
 	return IRQ_HANDLED;
@@ -29,7 +27,7 @@ static irqreturn_t spi_interrupt(int irq, void *dev_id)
 
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {	
-	int result,bufint;
+	int result;
 	
 	// Transfert	
 	at91_spi_write(AT91_SPI_TDR, tr);
@@ -43,14 +41,14 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 
 	// Traduction de la reponse en degres
 	if ((data & (1<<13))==0x0000){
-		bufint = ((short int)(result & 0x3FFF)) /40 ;	
+		result = ((short int)(data & 0x3FFF)) /40 ;	
 	}
 	else if ((data  & (1<<13))==0x2000){
-		bufint = ((short int)(result | 0x8000)) /40 ;	
+		result = ((short int)(data | 0x8000)) /40 ;	
 	}
 	
 	// Enregistrement de la donnee
-	sprintf(buf, "%d", bufint);
+	sprintf(buf, "%d", result);
 	
 	return 2;
 }

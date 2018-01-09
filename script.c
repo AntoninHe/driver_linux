@@ -11,28 +11,28 @@ int main(int argc, char *argv[]) {
 	char buffer[24];
 
 	printf("Opening the device file...");
-	int descripteur = open("/dev/spi",O_RDWR);
+	int spi = open("/dev/spi",O_RDWR);
 	printf("OK\n");
 
 	affichage_lcd(0,0,"SPI");
 	printf("Sélection de l'axe : ");
 	scanf("%c", &c);
-	if(descripteur>=0) {
-		if (ioctl(descripteur,SET_AXE,c)==0) {
-			printf("SPI file opened\n");
+	if(spi>=0) {
+		if (ioctl(spi,SET_AXE,c)==0) {
+			printf("SPI file opened, reading data...\n");
 			while(1) {
 
-				if(read(descripteur,value,sizeof(value))!=2) printf("error read\n");
+				if(read(spi,value,sizeof(value))!=2) printf("error read\n");
 				sprintf(buffer,"Value %c : %s",c,value);
 				affichage_lcd(0,0,buffer);
 				sleep(1);
 
 			}
-			close(descripteur);
+			close(spi);
 		}	
 	} else printf("erreur descripteur\n");
 	return -1;
 }
 
-//lcd_cls
+
 
