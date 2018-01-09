@@ -3,16 +3,14 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "spi.h"
-#include "lcdtxt.h"
+#include "lcdtxt_at91.h"
 
 int main(int argc, char *argv[]) {
-	int i=0;
 	char value[2] = {'0','0'};
 	char c;
+	char buffer[24];
 	int descripteur = open("/dev/spi",O_RDWR);
-	lcd_init();
-	lcd_putsxy(0,0,"test");
-	sleep(1);
+	affichage_lcd(0,0,"SPI");
 	printf("Sélection de l'axe : ");
 	scanf("%c", &c);
 	if(descripteur>=0) {
@@ -21,7 +19,8 @@ int main(int argc, char *argv[]) {
 			while(1) {
 
 				if(read(descripteur,value,sizeof(value))!=2) printf("error read\n");
-				printf("%s\n",value);
+				sprintf(buffer,"Value %c : %s",c,value);
+				affichage_lcd(0,0,buffer);
 				sleep(1);
 
 			}
