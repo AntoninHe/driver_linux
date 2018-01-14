@@ -18,8 +18,9 @@ int main(int argc, char *argv[]) {
 	char choix[3];
 	char buffer[24];
 	int c;
-
-
+    //initialisation de l'écran lcd
+    afffichage_init();
+    
 	printf("Opening the device file...");
 	int spi_d = open("/dev/spi",O_RDWR);
 	printf("OK\n");
@@ -44,7 +45,6 @@ int main(int argc, char *argv[]) {
 					affichage_lcd(0,0,buffer);
 				}
 				else{
-
 					sprintf(buffer,"Value X : %d",convert_2short_int(value));
 					affichage_lcd(0,0,buffer);
 					sprintf(buffer,"Value Y : %d",convert_2short_int(value+2));
