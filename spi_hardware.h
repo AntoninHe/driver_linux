@@ -5,6 +5,7 @@
 #include <asm/arch-at91rm9200/at91rm9200_spi.h>
 #include <asm/arch-at91rm9200/at91rm9200_sys.h>
 
+//fonction de lecture mémoire pour le SPI
 static inline unsigned int at91_spi_read(unsigned int reg_offset)
 {
 	void __iomem *addr = (void __iomem *)AT91_VA_BASE_SPI;
