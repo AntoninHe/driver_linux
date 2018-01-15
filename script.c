@@ -18,9 +18,9 @@ int main(int argc, char *argv[]) {
 	char choix[3];
 	char buffer[24];
 	int c;
-    //initialisation de l'écran lcd
-    afffichage_init();
-    
+  //initialisation de l'écran lcd
+  affichage_init();
+
 	printf("Opening the device file...");
 	int spi_d = open("/dev/spi",O_RDWR);
 	printf("OK\n");
@@ -55,10 +55,7 @@ int main(int argc, char *argv[]) {
 
 			}
 			close(spi_d);
-		}	
+		}
 	} else printf("erreur descripteur\n");
 	return -1;
 }
-
-
-
