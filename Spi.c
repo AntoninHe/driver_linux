@@ -20,10 +20,10 @@ int AXE_CONFIG=AXE_X;
 #define debug();
 
 /*****************************************************************************/
-/* Function..: spi_interrupt                                                 */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spi_interrupt, spi interrupt handler                          */
+/* Parameter.: irq, interrupt number                                         */
+/*						 dev_id, for multiplexed interrupt														 */
+/* Return....: notification of handled irq to the kernel				  					 */
 /*****************************************************************************/
 static irqreturn_t spi_interrupt(int irq, void *dev_id)
 {
@@ -33,10 +33,9 @@ static irqreturn_t spi_interrupt(int irq, void *dev_id)
 }
 
 /*****************************************************************************/
-/* Function..: convert_spi_value                                             */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: convert_spi_value, convert the raw acc value to a short int   */
+/* Parameter.: data, data to convert                                         */
+/* Return....: result, converted data                                        */
 /*****************************************************************************/
 short int convert_spi_value(short int data){
 	// Traduction de la reponse en degrés
@@ -51,10 +50,9 @@ short int convert_spi_value(short int data){
 }
 
 /*****************************************************************************/
-/* Function..: spiReadX                                                      */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spiReadXR, launch spi request for the X axis                  */
+/* Parameter.: non                                                           */
+/* Return....: non                                                           */
 /*****************************************************************************/
 short int spiReadX()
 {
@@ -64,10 +62,9 @@ short int spiReadX()
 }
 
 /*****************************************************************************/
-/* Function..: spiReadY                                                      */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spiReadXR, launch spi request for the Y axis                  */
+/* Parameter.: non                                                           */
+/* Return....: non                                                           */
 /*****************************************************************************/
 short int spiReadY()
 {
@@ -78,10 +75,10 @@ short int spiReadY()
 
 
 /*****************************************************************************/
-/* Function..: spi_read                                                      */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spi_read, read acc value                                                      */
+/* Parameter.: file, file descriptor                                         */
+/* 						 buf, buffer to store the data																 */
+/* Return....: data size return in the buffer                                */
 /*****************************************************************************/
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
 {
@@ -114,14 +111,13 @@ static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos
 	}
 }
 
-
-
-//int ioctl(int fd, int cmd, char *argp); user
 /*****************************************************************************/
-/* Function..: spi_ioctl                                                     */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spi_ioctl, parameter fonction for the driver                  */
+/* Parameter.: inode, file system data structure														 */
+/*             file, file descriptor                                         */
+/*             cmd, command type																             */
+/*						 arg, command argument      																	 */
+/* Return....: 0 (success), -1 (failed)                                      */
 /*****************************************************************************/
 static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg){
 	switch(cmd){
@@ -152,12 +148,11 @@ static int spi_ioctl(struct inode *inode, struct file *file, unsigned int cmd, u
 	return 0;
 }
 
-
 /*****************************************************************************/
-/* Function..: spi_open                                                      */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spi_open, to request a spi acces of the spi device					   */
+/* Parameter.: inode, file system data structure														 */
+/*             file, file descriptor                                         */
+/* Return....: 0 (success), -1 (failed)                                      */
 /*****************************************************************************/
 static ssize_t spi_open(struct inode *inode, struct file *file)
 {
@@ -169,10 +164,10 @@ static ssize_t spi_open(struct inode *inode, struct file *file)
 }
 
 /*****************************************************************************/
-/* Function..: spi_close                                                             */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: spi_close , to give back the acces of the spi device					 */
+/* Parameter.: inode, file system data structure														 */
+/*             file, file descriptor                                         */
+/* Return....: 0 (success), -1 (failed)                                      */
 /*****************************************************************************/
 static ssize_t spi_close(struct inode *inode, struct file *file)
 {
@@ -191,10 +186,9 @@ static struct file_operations fops =
 };
 
 /*****************************************************************************/
-/* Function..: module_spi_cleanup                                            */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: module_spi_cleanup,                                           */
+/* Parameter.: non                                                           */
+/* Return....: 0 (succes), ret error number                                  */
 /*****************************************************************************/
 static int __init module_spi_init(void)
 {
@@ -209,14 +203,14 @@ static int __init module_spi_init(void)
 					AT91_PA0_MISO 	| 	/*MISO*/
 					AT91_PA1_MOSI 	| 	/*MOSI*/
 					AT91_PA2_SPCK 	| 	/*SPCK*/
-					AT91_PA3_NPCS0);	/*NPCS0*/
+					AT91_PA3_NPCS0);	  /*NPCS0*/
 
 
 	at91_sys_write(	AT91_PIOA+PIO_ASR, 	/*Peripheral A pin select*/
 					AT91_PA0_MISO 	| 	/*MISO*/
 					AT91_PA1_MOSI 	| 	/*MOSI*/
 					AT91_PA2_SPCK 	| 	/*SPCK*/
-					AT91_PA3_NPCS0);	/*NPCS0*/
+					AT91_PA3_NPCS0);	  /*NPCS0*/
 
 
 
@@ -224,45 +218,53 @@ static int __init module_spi_init(void)
 	PMC setup
 	*************************/
 	at91_sys_write(	AT91_PMC_PCER,			/*Peripheral Clock Enable*/
-					1<<AT91_ID_SPI);	/*SPI enable*/
+					1<<AT91_ID_SPI);						/*SPI enable*/
 
 
 	/*************************
 	SPI setup
 	*************************/
-
-
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SWRST);	/* SPI Software Reset */
 
 
 	at91_spi_write(AT91_SPI_MR,temp);
-	at91_spi_write( AT91_SPI_MR,				/* Mode Register */
-					AT91_SPI_MSTR		|/* Master/Slave Mode */
-					AT91_SPI_PS_FIXED   	|/* Chip select fixed*/
-					0x00<<16		|/*NPCS 0*/
-					64<<24			|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
-					AT91_SPI_MODFDIS	|/*mode fault detection disabled*/
-					AT91_SPI_DIV32);	/* Clock Selection */
+	at91_spi_write( AT91_SPI_MR,		/* Mode Register */
+					AT91_SPI_MSTR 					|/* Master/Slave Mode */
+					AT91_SPI_PS_FIXED 			|/* Chip select fixed*/
+					0x00<<16 								|/*NPCS 0*/
+					64<<24									|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
+					AT91_SPI_MODFDIS				|/*mode fault detection disabled*/
+					AT91_SPI_DIV32);				/* Clock Selection */
 
-	at91_spi_write(	AT91_SPI_CSR(0),	/*	Chips select register 0*/
-					AT91_SPI_CPOL		|/*	Clock Polarity*/
-					AT91_SPI_BITS_16	|/*	16-bits transfer*/
-					9<<16				|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
-					64<<24				|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
-					4<<8);				/*	Baud rate MCK / (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
+	at91_spi_write(	AT91_SPI_CSR(0),/*	Chips select register 0*/
+					AT91_SPI_CPOL						|/*	Clock Polarity*/
+					AT91_SPI_BITS_16				|/*	16-bits transfer*/
+					9<<16										|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
+					64<<24									|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
+					4<<8);									|/*	Baud rate MCK
+																			/ (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
 
+	/*************************
+	Irq setup
+	*************************/
 	init_MUTEX_LOCKED(&spi_sem);
 	if (request_irq(AT91_ID_SPI, spi_interrupt,0,"at91_spi",NULL) < 0) printk(KERN_DEBUG "request_irq fault\n");
 
 	at91_spi_write( AT91_SPI_IER,			/* Interrupt Enable Register */
-				AT91_SPI_RDRF);		/* Receive Data Register Full Interrupt Enable */
+				AT91_SPI_RDRF);							/* Receive Data Register Full Interrupt Enable */
 
 	at91_sys_write( AT91_AIC_IECR,			/* AIC Interrupt Enable Command Register */
-				(1<<AT91_ID_SPI));	/* Enable Interrupt n°13 = SPI */
+				(1<<AT91_ID_SPI));						/* Enable Interrupt n°13 = SPI */
 
+	/*************************
+	SPI enable
+	*************************/
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SPIEN);	/* SPI Enable */
 	debug();
 
+	/*************************
+  Module install
+	*************************/
 	ret = register_chrdev(0,"spi_inclinometre_driver",&fops);
 	if (ret < 0)
 	{
@@ -276,10 +278,9 @@ static int __init module_spi_init(void)
 }
 
 /*****************************************************************************/
-/* Function..: module_spi_cleanup                                                             */
-/* Parameter.:                                                               */
-/* Var.......:                                                               */
-/* Return....:                                                               */
+/* Function..: module_spi_cleanup, call when the driver is unistalled				 */
+/* Parameter.: non                                                           */
+/* Return....: non                                                           */
 /*****************************************************************************/
 static void __exit module_spi_cleanup(void)
 {
