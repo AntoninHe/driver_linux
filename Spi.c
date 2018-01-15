@@ -227,7 +227,6 @@ static int __init module_spi_init(void)
 	at91_spi_write( AT91_SPI_CR,AT91_SPI_SWRST);	/* SPI Software Reset */
 
 
-	at91_spi_write(AT91_SPI_MR,temp);
 	at91_spi_write( AT91_SPI_MR,		/* Mode Register */
 					AT91_SPI_MSTR 					|/* Master/Slave Mode */
 					AT91_SPI_PS_FIXED 			|/* Chip select fixed*/
