@@ -75,7 +75,7 @@ short int spiReadY()
 
 
 /*****************************************************************************/
-/* Function..: spi_read, read acc value                                                      */
+/* Function..: spi_read, read acc value                                      */
 /* Parameter.: file, file descriptor                                         */
 /* 						 buf, buffer to store the data																 */
 /* Return....: data size return in the buffer                                */
