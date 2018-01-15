@@ -12,7 +12,6 @@ static inline unsigned int at91_spi_read(unsigned int reg_offset)
 	return readl(addr + reg_offset);
 }
 
-
 //fonction d'écriture mémoire pour le SPI
 static inline void at91_spi_write(unsigned int reg_offset, unsigned long value)
 {
@@ -21,5 +20,4 @@ static inline void at91_spi_write(unsigned int reg_offset, unsigned long value)
 	writel(value, addr + reg_offset);
 }
 
-#endif 
-
+#endif

@@ -247,7 +247,8 @@ static int __init module_spi_init(void)
 	Irq setup
 	*************************/
 	init_MUTEX_LOCKED(&spi_sem);
-	if (request_irq(AT91_ID_SPI, spi_interrupt,0,"at91_spi",NULL) < 0) printk(KERN_DEBUG "request_irq fault\n");
+	if (request_irq(AT91_ID_SPI, spi_interrupt,0,"at91_spi",NULL) < 0)
+		printk(KERN_DEBUG "request_irq fault\n");
 
 	at91_spi_write( AT91_SPI_IER,			/* Interrupt Enable Register */
 				AT91_SPI_RDRF);							/* Receive Data Register Full Interrupt Enable */
