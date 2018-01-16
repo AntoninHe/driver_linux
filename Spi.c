@@ -77,7 +77,7 @@ short int spiReadY()
 /*****************************************************************************/
 /* Function..: spi_read, read acc value                                      */
 /* Parameter.: file, file descriptor                                         */
-/* 						 buf, buffer to store the data																 */
+/* 						 buf, buffer to store theta																 */
 /* Return....: data size return in the buffer                                */
 /*****************************************************************************/
 static ssize_t spi_read(struct file *file, char *buf, size_t count, loff_t *ppos)
@@ -240,7 +240,7 @@ static int __init module_spi_init(void)
 					AT91_SPI_BITS_16				|/*	16-bits transfer*/
 					9<<16										|/* AT91_SPI_DLYBS = 9/180MHz = 50ns */
 					64<<24									|/* AT91_SPI_DLYBCT = 64 = 11.38µs */
-					4<<8);									|/*	Baud rate MCK
+					4<<8);									/*	Baud rate MCK
 																			/ (64*SCBR) SCBR=4 SPCK=703,1 kHz*/
 
 	/*************************

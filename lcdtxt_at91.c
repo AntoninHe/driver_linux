@@ -463,7 +463,7 @@ usage:
     return 0;
 }
 
-void afffichage_init()
+void affichage_init()
 {
     init_AT91_REGS();
     init_CS2_EXT ();
@@ -476,8 +476,6 @@ int affichage_lcd(int pos_x, int pos_y, char* texte)
     u8 buffer[24];
     u32 line, position;
 
-    lcd_cls();
-
 	position = (u32)pos_x;
 	line = (u32)pos_y;
 	if ((line > 7) | (position > 23)) return -1;
@@ -488,7 +486,10 @@ int affichage_lcd(int pos_x, int pos_y, char* texte)
     return 0;
 }
 
-
+void affichage_cls()
+{
+	    lcd_cls();
+}
 
 
 

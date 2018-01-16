@@ -39,3 +39,5 @@ extern void cur_on_off (int cur_on);
 extern void lcd_putc (char zeichen, unsigned char attribute);
 extern void lcd_putsxy_att (unsigned char x, unsigned char y, char *str, unsigned char att);
 extern int affichage_lcd (int pos_x, int pos_y, char* texte);
+extern void affichage_init();
+extern void affichage_cls();

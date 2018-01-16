@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
 	char buffer[24];
 	int c;
   //initialisation de l'écran lcd
-  affichage_init();
+  	affichage_init();
 
 	printf("Opening the device file...");
 	int spi_d = open("/dev/spi",O_RDWR);
